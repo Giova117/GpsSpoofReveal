@@ -1,5 +1,3 @@
-//made by me
-
 package testing.GpsSpoofReveal;
 
 import android.Manifest;
