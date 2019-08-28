@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp"
+    tools:context=".Analyze">
+
+    <View
+        android:layout_width = "wrap_content"
+        android:layout_height = "2dp"
+        android:layout_marginTop="17dp"
+        android:background="@color/black" />
+
+    <TextView
+        android:id="@+id/tvTitleQuery"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:textSize="21sp"
+        android:text="Query:"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/tvVariable"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="70dp"
+        android:textSize="21sp"
+        android:text="" />
+
+    <View
+        android:layout_width = "wrap_content"
+        android:layout_height = "2dp"
+        android:layout_marginTop="140dp"
+        android:background="@color/black" />
+
+    <TextView
+        android:id="@+id/tvTitleSatellites"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="150dp"
+        android:textSize="21sp"
+        android:text="Satellites:"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/tvSat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="180dp"
+        android:textSize="21sp"
+        android:text="" />
+
+    <TextView
+        android:id="@+id/tvResult"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="230dp"
+        android:textSize="21sp"
+        android:text="" />
+
+    <View
+        android:layout_width = "wrap_content"
+        android:layout_height = "2dp"
+        android:layout_marginTop="360dp"
+        android:background="@color/black"/>
+
+    <TextView
+        android:id="@+id/tvTitleResult"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="370dp"
+        android:textSize="28sp"
+        android:text="Result:"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/tvAnsw"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="420dp"
+        android:textSize="21sp"
+        android:textIsSelectable="false" />
+
+    <View
+        android:layout_width = "wrap_content"
+        android:layout_height = "2dp"
+        android:layout_marginTop="490dp"
+        android:background="@color/black"/>
+
+    <Button
+        android:id="@+id/bReturn"
+        android:layout_width="150dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="520dp"
+        android:layout_marginLeft="2dp"
+        android:layout_marginStart="2dp"
+        android:background="@drawable/returnback" />
+
+    <Button
+        android:id="@+id/bTryAgain"
+        android:layout_width="150dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="520dp"
+        android:layout_marginLeft="180dp"
+        android:layout_marginStart="180dp"
+        android:background="@drawable/tryagain" />
+
+</RelativeLayout>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="testing.GpsSpoofReveal">
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- the app needs permission to access the precise location by using the available location providers -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- the app needs permission to access the state of network access -->
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- the app needs permission to access to the internet -->
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="GpsSpoofReveal"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".Analyze"
+            android:screenOrientation="portrait" /> <!-- force the activity to stay in portrait mode -->
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="portrait"> <!-- force the activity to stay in portrait mode -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

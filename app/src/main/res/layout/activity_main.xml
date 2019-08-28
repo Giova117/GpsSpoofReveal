@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp"
+    tools:context=".MainActivity">
+
+    <View
+        android:layout_width = "wrap_content"
+        android:layout_height = "2dp"
+        android:layout_marginTop="17dp"
+        android:background="@color/black"/>
+
+    <Button
+        android:id="@+id/bStart"
+        android:layout_width="120dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="2dp"
+        android:layout_marginStart="2dp"
+        android:background="@drawable/start" />
+
+    <Chronometer
+        android:id="@+id/chronometer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="35dp"
+        android:layout_marginLeft="135dp"
+        android:layout_marginStart="135dp"
+        android:textSize="25sp" />
+
+    <Button
+        android:id="@+id/bReset"
+        android:layout_width="120dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="210dp"
+        android:layout_marginStart="210dp"
+        android:background="@drawable/info" />
+
+    <View
+        android:layout_width = "wrap_content"
+        android:layout_height = "2dp"
+        android:layout_marginTop="85dp"
+        android:background="@color/black" />
+
+    <TextView
+        android:id="@+id/tvTitleCoo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="100dp"
+        android:layout_marginLeft="110dp"
+        android:layout_marginStart="110dp"
+        android:textSize="21sp"
+        android:text="Coordinate:"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/tvGpsCoo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="135dp"
+        android:textSize="21sp" />
+
+    <View
+        android:layout_width = "wrap_content"
+        android:layout_height = "2dp"
+        android:layout_marginTop="200dp"
+        android:background="@color/black" />
+
+    <TextView
+        android:id="@+id/tvTitleList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="210dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginStart="30dp"
+        android:textSize="21sp"
+        android:text="List of visible Sat. GPS Svid:"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/tvList"
+        android:layout_width="393dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/chronometer"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="170dp"
+        android:layout_marginLeft="2dp"
+        android:layout_marginStart="2dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="290dp"
+        android:layout_marginLeft="125dp"
+        android:layout_marginStart="125dp"
+        android:text="Console:"
+        android:textColor="@color/black" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvTitle"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="17dp"
+        android:layout_marginRight="3dp">
+
+        <TextView
+            android:id="@+id/tvGpsInfo"
+            android:layout_width="240dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginLeft="35dp"
+            android:layout_marginStart="35dp"
+            android:textSize="15sp" />
+    </ScrollView>
+
+    <View
+        android:layout_width = "2dp"
+        android:layout_height = "wrap_content"
+        android:layout_marginTop="290dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginStart="30dp"
+        android:background="@color/black" />
+
+    <View
+        android:layout_width = "2dp"
+        android:layout_height = "wrap_content"
+        android:layout_marginTop="290dp"
+        android:layout_marginLeft="280dp"
+        android:layout_marginStart="280dp"
+        android:background="@color/black" />
+
+</RelativeLayout>
