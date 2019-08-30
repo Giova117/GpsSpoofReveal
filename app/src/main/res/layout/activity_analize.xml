@@ -13,16 +13,13 @@
     <View
         android:layout_width = "wrap_content"
         android:layout_height = "2dp"
-        android:layout_marginTop="17dp"
         android:background="@color/black" />
 
     <TextView
         android:id="@+id/tvTitleQuery"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"
-        android:textSize="21sp"
+        android:textSize="17sp"
         android:text="Query:"
         android:textColor="@color/black" />
 
@@ -30,57 +27,157 @@
         android:id="@+id/tvVariable"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="70dp"
-        android:textSize="21sp"
-        android:text="" />
+        android:layout_marginTop="20dp"
+        android:textSize="15sp" />
 
     <View
         android:layout_width = "wrap_content"
         android:layout_height = "2dp"
-        android:layout_marginTop="140dp"
+        android:layout_marginTop="60dp"
         android:background="@color/black" />
 
     <TextView
         android:id="@+id/tvTitleSatellites"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="150dp"
-        android:textSize="21sp"
-        android:text="Satellites:"
+        android:layout_marginTop="70dp"
+        android:textSize="17sp"
+        android:text="GPS Satellites Orbital Parameters:"
         android:textColor="@color/black" />
 
-    <TextView
-        android:id="@+id/tvSat"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="180dp"
-        android:textSize="21sp"
-        android:text="" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="130dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="90dp"
+        android:layout_marginEnd="17dp"
+        android:layout_marginRight="3dp">
 
-    <TextView
-        android:id="@+id/tvResult"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="230dp"
-        android:textSize="21sp"
-        android:text="" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvSuppSat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginStart="10dp"
+                android:textSize="15sp"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/tvSat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="110dp"
+                android:layout_marginStart="110dp"
+                android:textSize="15sp"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/tvCN"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="210dp"
+                android:layout_marginStart="210dp"
+                android:textSize="15sp"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/tvResult"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="260dp"
+                android:layout_marginStart="260dp"
+                android:textSize="15sp"
+                android:text="" />
+        </RelativeLayout>
+    </ScrollView>
 
     <View
         android:layout_width = "wrap_content"
         android:layout_height = "2dp"
-        android:layout_marginTop="360dp"
-        android:background="@color/black"/>
+        android:layout_marginTop="220dp"
+        android:background="@color/black" />
 
     <TextView
-        android:id="@+id/tvTitleResult"
+        android:id="@+id/tvTitleNav"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="230dp"
+        android:textSize="17sp"
+        android:text="GPS Navigation Messages:"
+        android:textColor="@color/black" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="250dp"
+        android:layout_marginEnd="17dp"
+        android:layout_marginRight="3dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvIdSatNav"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginStart="10dp"
+                android:textSize="15sp"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/tvHasEphemeris"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="80dp"
+                android:layout_marginStart="80dp"
+                android:textSize="15sp"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/tvHasAlmanac"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="180dp"
+                android:layout_marginStart="180dp"
+                android:textSize="15sp"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/tvResultNav"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="260dp"
+                android:layout_marginStart="260dp"
+                android:textSize="15sp"
+                android:text="" />
+        </RelativeLayout>
+    </ScrollView>
+
+    <View
+        android:layout_width = "wrap_content"
+        android:layout_height = "2dp"
+        android:layout_marginTop="390dp"
+        android:background="@color/black" />
+
+    <TextView
+        android:id="@+id/tvTitleConclusion"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="370dp"
-        android:textSize="28sp"
-        android:text="Result:"
+        android:layout_marginTop="400dp"
+        android:textSize="21sp"
+        android:text="Conclusion:"
         android:textColor="@color/black" />
 
     <TextView
@@ -88,8 +185,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="420dp"
-        android:textSize="21sp"
+        android:layout_marginTop="430dp"
+        android:textSize="17sp"
         android:textIsSelectable="false" />
 
     <View

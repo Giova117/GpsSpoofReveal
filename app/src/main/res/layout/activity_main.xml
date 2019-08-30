@@ -122,28 +122,28 @@
 
         <TextView
             android:id="@+id/tvGpsInfo"
-            android:layout_width="240dp"
+            android:layout_width="290dp"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:layout_marginLeft="35dp"
-            android:layout_marginStart="35dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
             android:textSize="15sp" />
     </ScrollView>
 
     <View
-        android:layout_width = "2dp"
-        android:layout_height = "wrap_content"
+        android:layout_width="2dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
         android:layout_marginTop="290dp"
-        android:layout_marginLeft="30dp"
-        android:layout_marginStart="30dp"
         android:background="@color/black" />
 
     <View
         android:layout_width = "2dp"
         android:layout_height = "wrap_content"
         android:layout_marginTop="290dp"
-        android:layout_marginLeft="280dp"
-        android:layout_marginStart="280dp"
+        android:layout_marginLeft="300dp"
+        android:layout_marginStart="300dp"
         android:background="@color/black" />
 
 </RelativeLayout>
