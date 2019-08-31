@@ -100,7 +100,7 @@ public class Analyze extends AppCompatActivity {
 
         //--------------------------------!!!----------------------------
         //the content of this string depends on how the own web server is set
-        String url = "http://79.51.183.181/node_modules/satellites-above/call.php?argument1=" + Latitude + "&argument2=" + Longitude;
+        String url = "http://79.44.189.146/node_modules/satellites-above/call.php?argument1=" + Latitude + "&argument2=" + Longitude;
         //--------------------------------!!!----------------------------
 
         final OkHttpClient client = new OkHttpClient();
@@ -162,7 +162,7 @@ public class Analyze extends AppCompatActivity {
                         public void run() {
                             tvSuppSatText = "Supp. Vis.:\n";
                             tvSatText = "Visible:\n";
-                            tvCNText = "C/N:\n";
+                            tvCNText = "C/N0:\n";
                             tvResultText = "Result:\n";
                             tvIdSatNavText = "ID:\n";
                             tvHasEphemerisText = "Ephemeris:\n";
@@ -223,8 +223,8 @@ public class Analyze extends AppCompatActivity {
                                             lovs[pointerListOfVisibleSat] [0] = 0;
                                             losvs[pointerListOfSuppVisibleSat] [0] = 0;
 
-                                            tvSatText = tvSatText + listOfVisibleSat[pointerListOfVisibleSat] [0] + ": " + listOfVisibleSat[pointerListOfVisibleSat] [1] + " " + listOfVisibleSat[pointerListOfVisibleSat] [2] + "\n";
-                                            tvSuppSatText = tvSuppSatText + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [0] + ": " + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [1]+ " " + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [2] + "\n";
+                                            tvSatText = tvSatText + listOfVisibleSat[pointerListOfVisibleSat] [0] + ": " + listOfVisibleSat[pointerListOfVisibleSat] [1] + "° " + listOfVisibleSat[pointerListOfVisibleSat] [2] + "°\n";
+                                            tvSuppSatText = tvSuppSatText + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [0] + ": " + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [1]+ "° " + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [2] + "°\n";
                                             tvCNText = tvCNText + listOfVisibleSat[pointerListOfVisibleSat] [3] + "\n";
                                             tvSat.setText(tvSatText);
                                             tvSuppSat.setText(tvSuppSatText);
@@ -289,7 +289,7 @@ public class Analyze extends AppCompatActivity {
                                         tvHasAlmanac.setTextColor(Color.parseColor("#d60000")); //red colour
                                     }
                                     if (lovs[pointerListOfVisibleSat][0] != 0) {
-                                        tvSatText = tvSatText + listOfVisibleSat[pointerListOfVisibleSat][0] + ": " + listOfVisibleSat[pointerListOfVisibleSat][1] + " " + listOfVisibleSat[pointerListOfVisibleSat][2] + "\n";
+                                        tvSatText = tvSatText + listOfVisibleSat[pointerListOfVisibleSat][0] + ": " + listOfVisibleSat[pointerListOfVisibleSat][1] + "° " + listOfVisibleSat[pointerListOfVisibleSat][2] + "°\n";
                                         tvCNText = tvCNText + listOfVisibleSat[pointerListOfVisibleSat][3] + "\n";
                                         tvSat.setText(tvSatText);
                                         tvCN.setText(tvCNText);
@@ -309,7 +309,7 @@ public class Analyze extends AppCompatActivity {
 
                                 for(pointerListOfSuppVisibleSat = 0; pointerListOfSuppVisibleSat < iterator; pointerListOfSuppVisibleSat++)
                                     if(losvs[pointerListOfSuppVisibleSat] [0] != 0){
-                                        tvSuppSatText = tvSuppSatText + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [0] + ": " + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [1]+ " " + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [2] + "\n";
+                                        tvSuppSatText = tvSuppSatText + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [0] + ": " + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [1]+ "° " + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [2] + "°\n";
                                         tvSuppSat.setText(tvSuppSatText);
                                     }
 
