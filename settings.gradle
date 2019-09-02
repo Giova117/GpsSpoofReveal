@@ -1,1 +1,7 @@
 include ':app', ':owncloudComLibrary', ':sample_client'
+
+sourceControl {
+    gitRepository("https://android.googlesource.com/platform/cts/+/master/tests/tests/location/src?autodive=0") {
+        producesModule("org.gradle.cpp-samples:utilities")
+    }
+}

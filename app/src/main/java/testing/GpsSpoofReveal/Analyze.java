@@ -30,25 +30,43 @@ public class Analyze extends AppCompatActivity {
     private TextView tvSuppSat;
     private TextView tvResult;
     private TextView tvIdSatNav;
-    private TextView tvHasEphemeris;
-    private TextView tvHasAlmanac;
+    private TextView tvNavMessIsOk;
     private TextView tvResultNav;
+    private TextView tvAnswer;
     private String tvCNText;
     private String tvSatText;
     private String tvSuppSatText;
     private String tvResultText;
     private String tvIdSatNavText;
-    private String tvHasEphemerisText;
-    private String tvHasAlmanacText;
+    private String tvNavMessIsOkText;
     private String tvResultNavText;
-    private TextView tvAnswer;
     private String tvAnswerText;
 
-    private int[] [] listOfVisibleSat;
+    private int[] [] listOfVisibleSat; //same format as "listOfSat" in the "MainActivity" activity
     private int[] [] listOfSuppVisibleSat;
+    /*format of listOfSuppVisibleSat [32] [3]
+     * maximum number of GPS satellites is 32 even if it is impossible for the device to see them all at the same time.
+     *
+     * listOfSuppVisibleSat[X] [0] = satellite ID
+     * listOfSuppVisibleSat[X] [1] = azimuth
+     * listOfSuppVisibleSat[X] [2] = elevation
+     *
+     * */
 
-    private int pointerListOfSuppVisibleSat, dimensionListOfVisibleSat, pointerListOfVisibleSat, iterator = 0;
+    private int[] [] listOfNavMessSat; //same format as "listOfNavMessSat" in the "MainActivity" activity
+    private String [] [] rawData; //same format as "rawData" in the "MainActivity" activity
+
+
+    private int pointerListOfSuppVisibleSat, dimensionListOfVisibleSat, pointerListOfVisibleSat, iterator = 0, numOfNavMessSat;
     private boolean b = false, z = true, Nav = true;
+    private String Ephemerids, Location;
+
+    //these variables are used to pass parameters to the activity ViewNavMess
+    public static final String EXTRA_NUMBER_9 = "testing.GpsSpoofReveal.EXTRA_NUMBER_9";
+    public static final String EXTRA_NUMBER_10 = "testing.GpsSpoofReveal.EXTRA_NUMBER_10";
+    public static final String EXTRA_NUMBER_11 = "testing.GpsSpoofReveal.EXTRA_NUMBER_11";
+    public static final String EXTRA_NUMBER_12 = "testing.GpsSpoofReveal.EXTRA_NUMBER_12";
+    public static final String EXTRA_NUMBER_13 = "testing.GpsSpoofReveal.EXTRA_NUMBER_13";
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -57,6 +75,7 @@ public class Analyze extends AppCompatActivity {
 
         bTryAgain = findViewById(R.id.bTryAgain);
         Button bReturn = findViewById(R.id.bReturn);
+        Button bViewNavMessData = findViewById(R.id.bViewNavMessData);
 
         //return button, return to activity MainActivity
         bReturn.setOnClickListener(new View.OnClickListener() {
@@ -75,8 +94,7 @@ public class Analyze extends AppCompatActivity {
         tvResult = findViewById(R.id.tvResult);
         tvVariable = findViewById(R.id.tvVariable);
         tvIdSatNav = findViewById(R.id.tvIdSatNav);
-        tvHasEphemeris = findViewById(R.id.tvHasEphemeris);
-        tvHasAlmanac = findViewById(R.id.tvHasAlmanac);
+        tvNavMessIsOk = findViewById(R.id.tvNavMessIsOk);
         tvResultNav = findViewById(R.id.tvResultNav);
 
         //read the parameters that have been passed from MainActivity
@@ -86,11 +104,23 @@ public class Analyze extends AppCompatActivity {
         dimensionListOfVisibleSat = intent.getIntExtra(MainActivity.EXTRA_NUMBER_2, 0);
         double Longitude = intent.getDoubleExtra(MainActivity.EXTRA_NUMBER_3, 0);
         double Latitude = intent.getDoubleExtra(MainActivity.EXTRA_NUMBER_4, 0);
-
+        listOfNavMessSat = (int[][]) intent.getSerializableExtra(MainActivity.EXTRA_NUMBER_5);
+        numOfNavMessSat = intent.getIntExtra(MainActivity.EXTRA_NUMBER_6, 0);
+        Ephemerids = intent.getStringExtra(MainActivity.EXTRA_NUMBER_7);
+        rawData = (String [] []) intent.getSerializableExtra(MainActivity.EXTRA_NUMBER_8);
 
         //show longitude and latitude
+        Location = "Longitude: " + Longitude + "\n" + "Latitude: " + Latitude;
         tvVariableText = tvVariable.getText() +  "Longitude: " + Longitude + "\n" + "Latitude: " + Latitude;
         tvVariable.setText(tvVariableText);
+
+        //view navigation message button, go to activity ViewNavMess
+        bViewNavMessData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                openActivity2();
+            }
+        });
 
         //send a request to the server
         sendRequest(Latitude, Longitude);
@@ -100,7 +130,7 @@ public class Analyze extends AppCompatActivity {
 
         //--------------------------------!!!----------------------------
         //the content of this string depends on how the own web server is set
-        String url = "http://79.44.189.146/node_modules/satellites-above/call.php?argument1=" + Latitude + "&argument2=" + Longitude;
+        String url = "http://62.211.50.93/node_modules/satellites-above/call.php?argument1=" + Latitude + "&argument2=" + Longitude;
         //--------------------------------!!!----------------------------
 
         final OkHttpClient client = new OkHttpClient();
@@ -152,8 +182,9 @@ public class Analyze extends AppCompatActivity {
                 });
             }
 
+            //run when device receives a http response
             @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {   //run when device receives a http response
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.isSuccessful()) {
                     assert response.body() != null;
                     final String myResponse = response.body().string();
@@ -165,10 +196,10 @@ public class Analyze extends AppCompatActivity {
                             tvCNText = "C/N0:\n";
                             tvResultText = "Result:\n";
                             tvIdSatNavText = "ID:\n";
-                            tvHasEphemerisText = "Ephemeris:\n";
-                            tvHasAlmanacText = "Almanac:\n";
+                            tvNavMessIsOkText = "Raw Data:\n";
                             tvResultNavText = "Result:\n";
 
+                            //it parses the server response to get the id, azimuth and elevation of the supposedly visible satellites
                             for(int c=0; c < myResponse.length(); c++){
                                 if(myResponse.charAt(c) == 'r'){
                                     c = c +4;
@@ -198,6 +229,9 @@ public class Analyze extends AppCompatActivity {
 
                             //check if there are enough satellites
                             if (dimensionListOfVisibleSat > 3) {
+
+                                /*this variable is used to add in the Visible list all the satellites
+                                that are visible but do not have a counterpart among the supposed visible ones ==> error*/
                                 int [] [] lovs = new int[32][6];
                                 for (int i=0; i< dimensionListOfVisibleSat; i++) {
                                     lovs[i][0] = listOfVisibleSat[i][0];
@@ -206,6 +240,8 @@ public class Analyze extends AppCompatActivity {
                                     lovs[i][3] = listOfVisibleSat[i][3];
                                 }
 
+                                /*this variable is used to add in the Supp. Vis. list all the satellites
+                                that are supposed visible but do not have a counterpart among the visible ones ==> OK*/
                                 int [] [] losvs = new int[32] [3];
                                 for(int i=0; i<iterator; i++){
                                     losvs[i][0] = listOfSuppVisibleSat[i] [0];
@@ -230,6 +266,10 @@ public class Analyze extends AppCompatActivity {
                                             tvSuppSat.setText(tvSuppSatText);
                                             tvCN.setText(tvCNText);
 
+                                            /*(suppVisibleAzimuth-2 < visibleAzimuth < suppVisibleAzimuth+2) module 360 AND
+                                            * (suppVisibleElevation-2 < visibleElevation < suppVisibleElevation+2) module 360 AND
+                                            * visibleCN < 70
+                                            * These data lack a scientific basis but by experience they work*/
                                             if(((listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [1] - 2) < listOfVisibleSat[pointerListOfVisibleSat] [1]) &&
                                                     (listOfVisibleSat[pointerListOfVisibleSat] [1] < listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [1] +2) &&
                                                     ((listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [2] - 2) < listOfVisibleSat[pointerListOfVisibleSat] [2]) &&
@@ -257,37 +297,45 @@ public class Analyze extends AppCompatActivity {
                                     if (!b)
                                         z = false;
                                 }
-
+                                boolean find; //find
                                 for(pointerListOfVisibleSat = 0; pointerListOfVisibleSat < dimensionListOfVisibleSat; pointerListOfVisibleSat++) {
 
+                                    find = false;
                                     tvIdSatNavText = tvIdSatNavText + listOfVisibleSat[pointerListOfVisibleSat][0] + "\n";
                                     tvIdSatNav.setText(tvIdSatNavText);
 
-                                    if (listOfVisibleSat[pointerListOfVisibleSat][4] == 1) {
-                                        tvHasEphemerisText = tvHasEphemerisText + "YES" +"\n";
-                                        tvHasEphemeris.setText(tvHasEphemerisText);
-                                        Nav = true;
+                                    if (listOfVisibleSat[pointerListOfVisibleSat][4] == 1 && listOfVisibleSat[pointerListOfVisibleSat][5] == 1 ) {
+                                        for(int i = 0; i < numOfNavMessSat; i++){
+                                            if(listOfNavMessSat[i] [0] == listOfVisibleSat [pointerListOfVisibleSat] [0]) {
+                                                find = true;
+                                                if(listOfNavMessSat[i] [6] == 0){  //Type = 1 ==> OK!
+                                                    tvNavMessIsOkText = tvNavMessIsOkText + "YES" +"\n";
+                                                    tvNavMessIsOk.setText(tvNavMessIsOkText);
+                                                    Nav = true;
+                                                }else{ //Type = 0 ==> X
+                                                    tvNavMessIsOkText = tvNavMessIsOkText + "NO" +"\n";
+                                                    tvNavMessIsOk.setText(tvNavMessIsOkText);
+                                                    z = false;
+                                                    Nav = false;
+                                                    tvNavMessIsOk.setTextColor(Color.parseColor("#d60000")); //red colour
+                                                }
+                                            }
+                                        }
+                                        if(!find) { //the satellite should have the navigation messages but is absent
+                                            tvNavMessIsOkText = tvNavMessIsOkText + "MISS" +"\n";
+                                            tvNavMessIsOk.setText(tvNavMessIsOkText);
+                                            Nav = true;
+                                        }
                                     }
-                                    else{
-                                        tvHasEphemerisText = tvHasEphemerisText + "NO" +"\n";
-                                        tvHasEphemeris.setText(tvHasEphemerisText);
+                                    else{ //the satellite has no ephemeris or almanac
+                                        tvNavMessIsOkText = tvNavMessIsOkText + "NO" +"\n";
+                                        tvNavMessIsOk.setText(tvNavMessIsOkText);
                                         z = false;
                                         Nav = false;
-                                        tvHasEphemeris.setTextColor(Color.parseColor("#d60000")); //red colour
+                                        tvNavMessIsOk.setTextColor(Color.parseColor("#d60000")); //red colour
                                     }
 
-                                    if(listOfVisibleSat[pointerListOfVisibleSat][5] == 1) {
-                                        tvHasAlmanacText = tvHasAlmanacText + "YES" + "\n";
-                                        tvHasAlmanac.setText(tvHasAlmanacText);
-                                        Nav = true;
-                                    }
-                                    else{
-                                        tvHasAlmanacText = tvHasAlmanacText + "NO" + "\n";
-                                        tvHasAlmanac.setText(tvHasAlmanacText);
-                                        z = false;
-                                        Nav = false;
-                                        tvHasAlmanac.setTextColor(Color.parseColor("#d60000")); //red colour
-                                    }
+                                    //add the remaining visible satellites ==> Error!
                                     if (lovs[pointerListOfVisibleSat][0] != 0) {
                                         tvSatText = tvSatText + listOfVisibleSat[pointerListOfVisibleSat][0] + ": " + listOfVisibleSat[pointerListOfVisibleSat][1] + "° " + listOfVisibleSat[pointerListOfVisibleSat][2] + "°\n";
                                         tvCNText = tvCNText + listOfVisibleSat[pointerListOfVisibleSat][3] + "\n";
@@ -307,6 +355,7 @@ public class Analyze extends AppCompatActivity {
                                     }
                                 }
 
+                                //add the remaining supposed visible satellites ==> OK
                                 for(pointerListOfSuppVisibleSat = 0; pointerListOfSuppVisibleSat < iterator; pointerListOfSuppVisibleSat++)
                                     if(losvs[pointerListOfSuppVisibleSat] [0] != 0){
                                         tvSuppSatText = tvSuppSatText + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [0] + ": " + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [1]+ "° " + listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [2] + "°\n";
@@ -322,9 +371,11 @@ public class Analyze extends AppCompatActivity {
                                     tvResult.setTextColor(Color.parseColor("#009900")); //green colour
                                     tvResultNav.setTextColor(Color.parseColor("#009900")); //green colour
                                 }
-                                //there are one or more satellites that should not be seen by the device
+
+                                //there are one or more satellites that should not be seen by the device or data are not correctly saved
                                 else {
                                     if(dataIsCorrupted()){
+                                        tvAnswer.setTextSize(14);
                                         tvAnswerText = "Data is corrupt! Restart acquisition!";
                                         tvAnswer.setText(tvAnswerText);
                                     }
@@ -364,6 +415,18 @@ public class Analyze extends AppCompatActivity {
         startActivity(intent);  //return to the activity MainActivity
     }
 
+    public void openActivity2(){
+        Intent intent2 = new Intent(this, ViewNavMess.class);
+
+        intent2.putExtra(EXTRA_NUMBER_9, listOfNavMessSat);
+        intent2.putExtra(EXTRA_NUMBER_10, numOfNavMessSat);
+        intent2.putExtra(EXTRA_NUMBER_11, Ephemerids);
+        intent2.putExtra(EXTRA_NUMBER_12, rawData);
+        intent2.putExtra(EXTRA_NUMBER_13, Location);
+
+        startActivity(intent2);  //start the activity ViewNavMess
+    }
+
     //Check if the device is connected to internet
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -372,9 +435,10 @@ public class Analyze extends AppCompatActivity {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
+    //if the cn field is equal to 0, the satellite data have not been recorded in time. The acquisition was terminated when the satellite data had not been fully saved.
     private boolean dataIsCorrupted(){
         for(int i =0; i < dimensionListOfVisibleSat; i++ )
-            if(listOfVisibleSat[i] [2] == 0)
+            if(listOfVisibleSat[i] [3] == 0)
                 return true;
             return false;
     }

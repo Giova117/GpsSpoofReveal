@@ -11,6 +11,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 
+import android.location.cts.nano.Ephemeris;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
@@ -19,8 +20,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Chronometer;
@@ -37,6 +36,12 @@ public class MainActivity extends AppCompatActivity {
     private LocationListener listener;
     private GnssNavigationMessage.Callback mNavCallback;
 
+    /*This class is used to derive the navigation message from raw data.
+    * This class was developed by Google, the undersigned has no copyright in this class.
+    * To distribute this code, you must first request permission from Google. */
+    private GpsNavigationMessageStore objNavMess;
+    private Ephemeris.GpsNavMessageProto NavigationMessages;
+
     private TextView tvGpsInfo;
     private TextView tvGpsCoo;
     private TextView tvList;
@@ -44,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private Button bReset;
     private String tvGpsCooText = "";
     private Chronometer chronometer;
-    private int SecretVariable = 0;
+    private int SecretVariable = 0, counter;
 
     //these variables contain the position of the device
     private double Longitude;
@@ -52,16 +57,58 @@ public class MainActivity extends AppCompatActivity {
 
     //these variables are used to pass parameters to the activity Analyze
     public static final String EXTRA_NUMBER_1 = "testing.GpsSpoofReveal.EXTRA_NUMBER_1";
-    public static final String EXTRA_NUMBER_2= "testing.GpsSpoofReveal.EXTRA_NUMBER_2";
-    public static final String EXTRA_NUMBER_3= "testing.GpsSpoofReveal.EXTRA_NUMBER_3";
-    public static final String EXTRA_NUMBER_4= "testing.GpsSpoofReveal.EXTRA_NUMBER_4";
+    public static final String EXTRA_NUMBER_2 = "testing.GpsSpoofReveal.EXTRA_NUMBER_2";
+    public static final String EXTRA_NUMBER_3 = "testing.GpsSpoofReveal.EXTRA_NUMBER_3";
+    public static final String EXTRA_NUMBER_4 = "testing.GpsSpoofReveal.EXTRA_NUMBER_4";
+    public static final String EXTRA_NUMBER_5 = "testing.GpsSpoofReveal.EXTRA_NUMBER_5";
+    public static final String EXTRA_NUMBER_6 = "testing.GpsSpoofReveal.EXTRA_NUMBER_6";
+    public static final String EXTRA_NUMBER_7 = "testing.GpsSpoofReveal.EXTRA_NUMBER_7";
+    public static final String EXTRA_NUMBER_8 = "testing.GpsSpoofReveal.EXTRA_NUMBER_8";
 
-    private Integer satelliteCount, sat_id, constellationType, azimuthDegrees, elevationDegrees, cn0DbHz, count = 0, pointer = 0;
+    private Integer satelliteCount, sat_id, constellationType, azimuthDegrees, elevationDegrees, cn0DbHz, pointer = 0, numOfNavMessSat = 0;
     private boolean hasAlmanac, hasEphemeris;
-    private String v;
+    private String v = "";
     private int[] [] listOfSat;
+    /*format of listOfSat [32] [7]
+    * maximum number of GPS satellites is 32 even if it is impossible for the device to see them all at the same time.
+    *
+    * listOfSat[X] [0] = satellite ID
+    * listOfSat[X] [1] = azimuth
+    * listOfSat[X] [2] = elevation
+    * listOfSat[X] [3] = cn   (Carrier to Noise)
+    * listOfSat[X] [4] = hasEphemeris?
+    * listOfSat[X] [5] = hasAlmanac?
+    * listOfSat[X] [6] = this bit is set to one if the satellite has at least one rawData or has no ephemeris or almanac
+    *
+    * */
+    private int[] [] listOfNavMessSat;
+    /*format of listOfNavMessSat [32] [7]
+     * maximum number of GPS satellites is 32 even if it is impossible for the device to see them all at the same time.
+     *
+     * listOfNavMessSat[X] [0] = satellite ID
+     * listOfNavMessSat[X] [1] = hasSubmessage1?
+     * listOfNavMessSat[X] [2] = hasSubmessage2?
+     * listOfNavMessSat[X] [3] = hasSubmessage3?
+     * listOfNavMessSat[X] [4] = hasSubmessage4?
+     * listOfNavMessSat[X] [5] = hasSubmessage5?
+     * listOfNavMessSat[X] [6] = this bit is set to 0 when the Type field of the rawData is != 1, in the GPS constellation this cannot be ==> error, probable spoofing
+     *
+     * */
+    private String[] [] rawData;
+    /*format of rawData [32] [6]
+     * maximum number of GPS satellites is 32 even if it is impossible for the device to see them all at the same time.
+     *
+     * rawData[X] [0] = satellite ID
+     * rawData[X] [1] = rawData1 or null if it is missing
+     * rawData[X] [2] = rawData2 or null if it is missing
+     * rawData[X] [3] = rawData3 or null if it is missing
+     * rawData[X] [4] = rawData4 or null if it is missing
+     * rawData[X] [5] = rawData5 or null if it is missing
+     *
+     * */
     private boolean startStop = false, infoReset = false, findPosition = false;
     private final int MY_PERMISSIONS_REQUEST_POSITION = 10;
+    private String Ephemerids;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,18 +116,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         tvGpsInfo = findViewById(R.id.tvGpsInfo);
-        tvGpsInfo.setMovementMethod(new ScrollingMovementMethod());
         tvGpsCoo = findViewById(R.id.tvGpsCoo);
         tvList = findViewById(R.id.tvList);
 
         bStart = findViewById(R.id.bStart);
         bReset = findViewById(R.id.bReset);
-
         //initialize chronometer
         chronometer = findViewById(R.id.chronometer);
         chronometer.setFormat("%s");
 
-        listOfSat = new int[32] [6];    //the maximum number of GPS satellites is 32 even if it is impossible for the device to see them all at the same time
+        listOfSat = new int[32] [7];
+        listOfNavMessSat = new int[32] [7];
+        rawData = new String[32] [6];
 
     }
 
@@ -88,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+
 
         //info or reset button
         bReset.setOnClickListener(new View.OnClickListener() {
@@ -154,16 +202,21 @@ public class MainActivity extends AppCompatActivity {
 
                         //read data received from GPS satellites
                         dataFromSatellite();
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                            mLocationManager.registerGnssStatusCallback(mGnssStatusCallback);   //it is possible to ignore this error, permission checking is already performed
-                            mLocationManager.registerGnssNavigationMessageCallback(mNavCallback);
-                        }
+                        mLocationManager.registerGnssStatusCallback(mGnssStatusCallback);   //it is possible to ignore this error, permission checking is already performed
+                        mLocationManager.registerGnssNavigationMessageCallback(mNavCallback);
                         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0, listener);  //it is possible to ignore this error, permission checking is already performed
                         startStop = true;
                     }
 
                     //stop the GPS acquisition
                     else{
+                        NavigationMessages = new  Ephemeris.GpsNavMessageProto ();
+                        NavigationMessages = objNavMess.createDecodedNavMessage();
+                        try {
+                            Ephemerids = Arrays.toString(NavigationMessages.ephemerids);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
                         Toast.makeText(getApplicationContext(), "Stop GPS acquisition!", Toast.LENGTH_SHORT).show();
                         resetChronometer();
                         mLocationManager.removeUpdates(listener);
@@ -177,7 +230,6 @@ public class MainActivity extends AppCompatActivity {
             });
         }
         else{
-
             // Permission is not granted so ask location permission
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_POSITION);
         }
@@ -191,10 +243,8 @@ public class MainActivity extends AppCompatActivity {
         //check the permissions and if they are verified stop receiving the position updates
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mLocationManager.removeUpdates(listener);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                mLocationManager.unregisterGnssStatusCallback(mGnssStatusCallback);
-                mLocationManager.unregisterGnssNavigationMessageCallback(mNavCallback);
-            }
+            mLocationManager.unregisterGnssStatusCallback(mGnssStatusCallback);
+            mLocationManager.unregisterGnssNavigationMessageCallback(mNavCallback);
         }
 
         //reset the activity
@@ -215,54 +265,118 @@ public class MainActivity extends AppCompatActivity {
         resetChronometer();
 
         pointer =0;
-        count = 0;
-        listOfSat = new int[32] [6];
+        listOfSat = new int[32] [7];
+        listOfNavMessSat = new int[32] [7];
+        rawData = new String[32][6];
         super.onStop();
     }
 
-    //read data received from GPS satellites, in this case we only need the GPS Svid
+    //read data received from GPS satellites
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void dataFromSatellite (){
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        objNavMess = new GpsNavigationMessageStore();
 
-        mNavCallback = new GnssNavigationMessage.Callback() { //Navigation Messages
+        //Raw Data
+        mNavCallback = new GnssNavigationMessage.Callback() {
             @Override
             public void onGnssNavigationMessageReceived(GnssNavigationMessage event) {
                 super.onGnssNavigationMessageReceived(event);
                 if(event.getType() == GnssNavigationMessage.TYPE_GPS_L1CA) //analyze only GPS L1 satellites
                 {
-                    Log.d("giovanni", event.getSvid() + " " + event.getMessageId() +" " + event.getSubmessageId()+ " " + Arrays.toString(event.getData()));
+                    byte Svid = (byte) event.getSvid();
+                    byte Type = (byte) event.getType();
+                    byte SubmessageId = (byte) event.getSubmessageId();
+                    byte [] Data = event.getData();
+                    boolean find = false;
+                    boolean allSatHasNav = true;
+
+
+                    for(int i=0; i< numOfNavMessSat; i++){
+                        if(listOfNavMessSat[i] [0]  == Svid){
+                            find = true;
+                            if(Type == 1){
+                                if(listOfNavMessSat[i] [SubmessageId] == 0) {
+                                    listOfNavMessSat[i] [SubmessageId] = 1;
+                                    rawData[i] [SubmessageId] = Arrays.toString(Data);
+                                    v = "NavMess: ID " +  listOfNavMessSat[i] [0] + ", Submessages: [ " +listOfNavMessSat[i] [1] + " " + listOfNavMessSat[i] [2] + " " + listOfNavMessSat[i] [3] + " " + listOfNavMessSat[i] [4] + " " + listOfNavMessSat[i] [5] + " ]\n\n" + v;
+                                    objNavMess.onNavMessageReported(Svid, Type, SubmessageId, Data);
+                                }
+                            }else{
+                                listOfNavMessSat[i] [6] = 1;
+                            }
+                        }
+                    }
+
+                    if(!find) {
+                        listOfNavMessSat[numOfNavMessSat][0] = Svid;
+                        if (Type == 1) {
+                            listOfNavMessSat[numOfNavMessSat][SubmessageId] = 1;
+                            v = "NavMess: ID " +  listOfNavMessSat[numOfNavMessSat] [0] + ", Submessages: [ " +listOfNavMessSat[numOfNavMessSat] [1] + " " + listOfNavMessSat[numOfNavMessSat] [2] + " " + listOfNavMessSat[numOfNavMessSat] [3] + " " + listOfNavMessSat[numOfNavMessSat] [4] + " " + listOfNavMessSat[numOfNavMessSat] [5] + " ]\n\n" + v;
+                            rawData [numOfNavMessSat] [0] = "" +  Svid;
+                            rawData [numOfNavMessSat] [SubmessageId] = Arrays.toString(Data);
+
+                            objNavMess.onNavMessageReported(Svid, Type, SubmessageId, Data);
+                        } else {
+                            listOfNavMessSat[numOfNavMessSat] [6] = 1;
+                        }
+
+                        for(int i =0; i < pointer; i++){
+                            if(listOfSat[i][0] == Svid)
+                                listOfSat [i] [6] = 1; //this satellite has at least one RawData
+                        }
+
+                        for(int i=0; i < pointer; i++)
+                            if(listOfSat [i] [6] == 0)
+                                allSatHasNav = false;
+
+
+                        if(allSatHasNav && findPosition)
+                            tvList.setTextColor(Color.parseColor("#009900")); //green colour
+                        else
+                            tvList.setTextColor(Color.parseColor("#d60000")); //red colour
+
+                        numOfNavMessSat++;
+                    }
+                    counter ++;
+                    if(counter == 5){
+                        counter = 0;
+                        runOnUiThread(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                tvGpsInfo.setText(v);
+                            }
+                        });
+                    }
                 }
             }
         };
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            mGnssStatusCallback = new GnssStatus.Callback() {  //satellites ID
-                @Override
-                public void onSatelliteStatusChanged(GnssStatus status) {
-                    satelliteCount = status.getSatelliteCount();
-                    for(int i = 0; i<satelliteCount; i++){
-                        sat_id = status.getSvid(i);
-                        constellationType = status.getConstellationType(i);
-                        azimuthDegrees = (int)status.getAzimuthDegrees(i);
-                        elevationDegrees = (int)status.getElevationDegrees(i);
-                        cn0DbHz = (int)status.getCn0DbHz(i);
-                        hasEphemeris = status.hasEphemerisData(i);
-                        hasAlmanac = status.hasAlmanacData(i);
+        //satellites ID, Carrier to Noise, azimuth degrees, elevation degrees, hasEphemeris and hasAlmanac
+        mGnssStatusCallback = new GnssStatus.Callback() {
+            @Override
+            public void onSatelliteStatusChanged(GnssStatus status) {
+                satelliteCount = status.getSatelliteCount();
+                for(int i = 0; i<satelliteCount; i++){
+                    sat_id = status.getSvid(i);
+                    constellationType = status.getConstellationType(i);
+                    azimuthDegrees = (int)status.getAzimuthDegrees(i);
+                    elevationDegrees = (int)status.getElevationDegrees(i);
+                    cn0DbHz = (int)status.getCn0DbHz(i);
+                    hasEphemeris = status.hasEphemerisData(i);
+                    hasAlmanac = status.hasAlmanacData(i);
 
-                        //add only constellation type GPS
-                        if(constellationType == GnssStatus.CONSTELLATION_GPS){
-                            if(checkList(sat_id, azimuthDegrees, elevationDegrees, cn0DbHz, hasEphemeris, hasAlmanac)) {
-                                v = "ID " + sat_id + ", Azimuth " + azimuthDegrees + ", Elevation " + elevationDegrees + ", C/N " + cn0DbHz + ", hasEphemeris " + hasEphemeris + ", hasAlmanac " + hasAlmanac + "\n\n";
-                                v += tvGpsInfo.getText();
-                                tvGpsInfo.setText(v);
-                            }
+                    //add only constellation type GPS
+                    if(constellationType == GnssStatus.CONSTELLATION_GPS){
+                        if(checkList(sat_id, azimuthDegrees, elevationDegrees, cn0DbHz, hasEphemeris, hasAlmanac)) {
+                            v = "ID " + sat_id + ", Azimuth " + azimuthDegrees + ", Elevation " + elevationDegrees + ", C/N " + cn0DbHz + ", hasEphemeris " + hasEphemeris + ", hasAlmanac " + hasAlmanac + "\n\n" + v;
+                            tvGpsInfo.setText(v);
                         }
                     }
-                    count = count + 1;
                 }
-            };
-        }
+            }
+        };
     }
 
     //this method is only executed when permissions are requested
@@ -301,12 +415,7 @@ public class MainActivity extends AppCompatActivity {
                 listOfSat[k] [3] = cn;
                 listOfSat[k] [4] = hasEphemeris ? 1:0;
                 listOfSat[k] [5] = hasAlmanac ? 1:0;
-
-                if(findPosition && cn !=0)
-                    tvList.setTextColor(Color.parseColor("#009900")); //green colour
-                else
-                    tvList.setTextColor(Color.parseColor("#d60000")); //red colour
-                break;
+                listOfSat[k] [6] = ((!hasEphemeris || !hasAlmanac) ? 1:0);  //if satellite has no eph. or alm., set the navigatioMessages bit to 1
             }
         }
         if(!find){
@@ -329,12 +438,18 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(EXTRA_NUMBER_2, pointer);
         intent.putExtra(EXTRA_NUMBER_3, Longitude);
         intent.putExtra(EXTRA_NUMBER_4, Latitude);
+        intent.putExtra(EXTRA_NUMBER_5, listOfNavMessSat);
+        intent.putExtra(EXTRA_NUMBER_6, numOfNavMessSat);
+        intent.putExtra(EXTRA_NUMBER_7, Ephemerids);
+        intent.putExtra(EXTRA_NUMBER_8, rawData);
 
         startActivity(intent);  //start the activity Analyze
     }
 
     //shows information in the console
     public void displayInfo(int SecretVariable){
+
+        //easter egg
         if(SecretVariable == 5) {
             tvGpsInfo.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
             v = " ---EXPLORE---\n\n" +
@@ -355,7 +470,10 @@ public class MainActivity extends AppCompatActivity {
             tvGpsInfo.setText(v);
         }
         else{
-            v = "---INFO---\n\n Version: 1.0\n Made by: Giovanni Carollo\nContacts: giovanni.carollo.3@studenti.unipd.it\nThis application is a part of the GpsSpoofReveal project. GpsSpoofReveal was created as a thesis project for a three-year degree in computer engineering for the University of Padua. Right now GpsSpoofReveal is still in a beta phase. The layout may not be displayed correctly on some devices.\n\n---INFO---\n";
+            v = "---INFO---\n\n Version: 1.2\n Made by: Giovanni Carollo\nContacts: " +
+                    "giovanni.carollo.3@studenti.unipd.it\nThis application is a part of the GpsSpoofReveal project. " +
+                    "GpsSpoofReveal was created as a thesis project for a three-year degree in computer engineering for the University of Padua. " +
+                    "Right now GpsSpoofReveal is still in a beta phase. The layout may not be displayed correctly on some devices.\n\n---INFO---\n";
             tvGpsInfo.setText(v);
             tvGpsInfo.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, R.drawable.unipd); //unipd logo image
         }

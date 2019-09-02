@@ -2,9 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="testing.GpsSpoofReveal">
 
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- the app needs permission to access the precise location by using the available location providers -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- the app needs permission to access the state of network access -->
-    <uses-permission android:name="android.permission.INTERNET" /> <!-- the app needs permission to access to the internet -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- app needs permission to access the precise location by using the available location providers -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- app needs permission to access the state of network access -->
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- app needs permission to access the Internet -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- app needs permission to access the device's memory -->
 
     <application
         android:allowBackup="true"
@@ -12,6 +13,9 @@
         android:label="GpsSpoofReveal"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity
+            android:name=".ViewNavMess"
+            android:screenOrientation="portrait" /> <!-- force the activity to stay in portrait mode -->
         <activity
             android:name=".Analyze"
             android:screenOrientation="portrait" /> <!-- force the activity to stay in portrait mode -->
