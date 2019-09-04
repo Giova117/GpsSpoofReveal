@@ -41,6 +41,7 @@ public class ViewNavMess extends AppCompatActivity {
 
     private String file = "GpsSpoofReveal";
     private String nameFile;
+    private String currentTime;
 
     private final int MY_PERMISSIONS_REQUEST_WRITE = 1;
 
@@ -51,18 +52,18 @@ public class ViewNavMess extends AppCompatActivity {
 
         bSave = findViewById(R.id.bSave);
         tvNavMess = findViewById(R.id.tvNavMess);
-        Date currentTime = Calendar.getInstance().getTime();
 
         //reads the parameters passed from the "Analyze" activity
         Intent intent = getIntent();
 
-        listOfNavMessSat = (int[][]) intent.getSerializableExtra(Analyze.EXTRA_NUMBER_9);
-        numOfNavMessSat = intent.getIntExtra(Analyze.EXTRA_NUMBER_10, 0);
-        Ephemerids = intent.getStringExtra(Analyze.EXTRA_NUMBER_11);
-        rawData = (String[][]) intent.getSerializableExtra(Analyze.EXTRA_NUMBER_12);
-        Location = intent.getStringExtra(Analyze.EXTRA_NUMBER_13);
+        listOfNavMessSat = (int[][]) intent.getSerializableExtra(Analyze.EXTRA_NUMBER_10);
+        numOfNavMessSat = intent.getIntExtra(Analyze.EXTRA_NUMBER_11, 0);
+        Ephemerids = intent.getStringExtra(Analyze.EXTRA_NUMBER_12);
+        rawData = (String[][]) intent.getSerializableExtra(Analyze.EXTRA_NUMBER_13);
+        Location = intent.getStringExtra(Analyze.EXTRA_NUMBER_14);
+        currentTime = intent.getStringExtra(Analyze.EXTRA_NUMBER_15);
 
-       //check permissions to access the device memory
+        //check permissions to access the device memory
         if(!(checkPermission())) {
             askPermisison();}
 

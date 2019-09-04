@@ -8,6 +8,7 @@ import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -55,18 +56,21 @@ public class Analyze extends AppCompatActivity {
 
     private int[] [] listOfNavMessSat; //same format as "listOfNavMessSat" in the "MainActivity" activity
     private String [] [] rawData; //same format as "rawData" in the "MainActivity" activity
+    private int [] [] ephParam = new int[32][5];
 
 
     private int pointerListOfSuppVisibleSat, dimensionListOfVisibleSat, pointerListOfVisibleSat, iterator = 0, numOfNavMessSat;
-    private boolean b = false, z = true, Nav = true;
-    private String Ephemerids, Location;
+    private boolean b = false, z = true, Nav = true, checkEph = true;
+    private String Ephemeris, Location;
+    private String currentTime;
 
     //these variables are used to pass parameters to the activity ViewNavMess
-    public static final String EXTRA_NUMBER_9 = "testing.GpsSpoofReveal.EXTRA_NUMBER_9";
     public static final String EXTRA_NUMBER_10 = "testing.GpsSpoofReveal.EXTRA_NUMBER_10";
     public static final String EXTRA_NUMBER_11 = "testing.GpsSpoofReveal.EXTRA_NUMBER_11";
     public static final String EXTRA_NUMBER_12 = "testing.GpsSpoofReveal.EXTRA_NUMBER_12";
     public static final String EXTRA_NUMBER_13 = "testing.GpsSpoofReveal.EXTRA_NUMBER_13";
+    public static final String EXTRA_NUMBER_14 = "testing.GpsSpoofReveal.EXTRA_NUMBER_14";
+    public static final String EXTRA_NUMBER_15 = "testing.GpsSpoofReveal.EXTRA_NUMBER_15";
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -106,8 +110,9 @@ public class Analyze extends AppCompatActivity {
         double Latitude = intent.getDoubleExtra(MainActivity.EXTRA_NUMBER_4, 0);
         listOfNavMessSat = (int[][]) intent.getSerializableExtra(MainActivity.EXTRA_NUMBER_5);
         numOfNavMessSat = intent.getIntExtra(MainActivity.EXTRA_NUMBER_6, 0);
-        Ephemerids = intent.getStringExtra(MainActivity.EXTRA_NUMBER_7);
+        Ephemeris = intent.getStringExtra(MainActivity.EXTRA_NUMBER_7);
         rawData = (String [] []) intent.getSerializableExtra(MainActivity.EXTRA_NUMBER_8);
+        currentTime = intent.getStringExtra(MainActivity.EXTRA_NUMBER_9);
 
         //show longitude and latitude
         Location = "Longitude: " + Longitude + "\n" + "Latitude: " + Latitude;
@@ -122,6 +127,11 @@ public class Analyze extends AppCompatActivity {
             }
         });
 
+        //check if the ephemeris is correct
+        checkEph = checkEphemeris(Ephemeris);
+        if(!checkEph)
+            z = false;
+
         //send a request to the server
         sendRequest(Latitude, Longitude);
     }
@@ -130,7 +140,7 @@ public class Analyze extends AppCompatActivity {
 
         //--------------------------------!!!----------------------------
         //the content of this string depends on how the own web server is set
-        String url = "http://62.211.50.93/node_modules/satellites-above/call.php?argument1=" + Latitude + "&argument2=" + Longitude;
+        String url = "http://62.211.50.101/node_modules/satellites-above/call.php?argument1=" + Latitude + "&argument2=" + Longitude;
         //--------------------------------!!!----------------------------
 
         final OkHttpClient client = new OkHttpClient();
@@ -162,7 +172,10 @@ public class Analyze extends AppCompatActivity {
 
                         //if there is no internet connection
                         else{
-                            tvAnswerText = "Device is not connected to the internet! Activate a valid connection and press Try Again!";
+                            if(checkEph)
+                                tvAnswerText = "Device is not connected to the internet! Activate a valid connection and press Try Again!";
+                            else
+                                tvAnswerText = "Ephemeris are not correct, use an internet network for greater accuracy!";
                             tvAnswer.setTextSize(14);
                             tvAnswer.setText(tvAnswerText);
                             tvAnswer.setTextColor(Color.parseColor("#d60000")); //red colour
@@ -266,14 +279,16 @@ public class Analyze extends AppCompatActivity {
                                             tvSuppSat.setText(tvSuppSatText);
                                             tvCN.setText(tvCNText);
 
-                                            /*(suppVisibleAzimuth-2 < visibleAzimuth < suppVisibleAzimuth+2) module 360 AND
-                                            * (suppVisibleElevation-2 < visibleElevation < suppVisibleElevation+2) module 360 AND
-                                            * visibleCN < 70
+                                            /*(suppVisibleAzimuth-3 < visibleAzimuth < suppVisibleAzimuth+3) module 360 AND
+                                            * (suppVisibleElevation-3 < visibleElevation < suppVisibleElevation+3) module 360 AND
+                                            *
                                             * These data lack a scientific basis but by experience they work*/
-                                            if(((listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [1] - 2) < listOfVisibleSat[pointerListOfVisibleSat] [1]) &&
-                                                    (listOfVisibleSat[pointerListOfVisibleSat] [1] < listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [1] +2) &&
-                                                    ((listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [2] - 2) < listOfVisibleSat[pointerListOfVisibleSat] [2]) &&
-                                                    (listOfVisibleSat[pointerListOfVisibleSat] [2] < listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [2] +2)){
+                                            if(checkOrbit(listOfVisibleSat[pointerListOfVisibleSat] [1], listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [1]) &&
+                                                    checkOrbit(listOfVisibleSat[pointerListOfVisibleSat] [2], listOfSuppVisibleSat[pointerListOfSuppVisibleSat] [2])){
+
+                                                /*This type of control is quite useless. In the event of a spoofing attack, the AGC gain usually increases and this drastically
+                                                 *decreases C / N0 making the control useless. To perform an effective check, the C / N0 should be analyzed in relation to the AGC.
+                                                 *Unfortunately, at the time of development of this application, almost all Android devices do not allow reading of the AGC values.*/
                                                 if((listOfVisibleSat[pointerListOfVisibleSat] [3] < 70)) {
                                                     tvResultText = tvResultText + "OK!" + "\n";
                                                     tvResult.setText(tvResultText);
@@ -380,8 +395,12 @@ public class Analyze extends AppCompatActivity {
                                         tvAnswer.setText(tvAnswerText);
                                     }
                                     else{
-                                    tvAnswerText = "False Position!";
-                                    tvAnswer.setText(tvAnswerText);
+                                        if(checkEph)
+                                            tvAnswerText = "False Position! Too many visible satellites or orbits of the satellites are not correct!";
+                                        else
+                                            tvAnswerText = "False Position! Ephemeris are not correct, please view Navigation Message.";
+                                        tvAnswer.setTextSize(14);
+                                        tvAnswer.setText(tvAnswerText);
                                     }
 
                                     tvAnswer.setTextColor(Color.parseColor("#d60000")); //red colour
@@ -404,6 +423,54 @@ public class Analyze extends AppCompatActivity {
         });
     }
 
+    public boolean checkOrbit(int vis, int sup){
+        switch(vis) {
+            case 358:
+                switch(sup){
+                    case 0: return true;
+                    case 359: return true;
+                    case 358: return true;
+                    case 357: return true;
+                    case 356: return true;
+                    default: return false;
+                }
+
+            case 359:
+                switch(sup){
+                    case 1: return true;
+                    case 0: return true;
+                    case 359: return true;
+                    case 358: return true;
+                    case 357: return true;
+                    default: return false;
+                }
+
+            case 0:
+                switch(sup){
+                    case 2: return true;
+                    case 1: return true;
+                    case 0: return true;
+                    case 359: return true;
+                    case 358: return true;
+                    default: return false;
+                }
+
+            case 1:
+                switch(sup){
+                    case 3: return true;
+                    case 2: return true;
+                    case 1: return true;
+                    case 0: return true;
+                    case 359: return true;
+                    default: return false;
+                }
+            default:
+                return (vis > sup - 3 && vis < sup + 3);
+
+        }
+    }
+
+
     //send to the server another request
     public void tryAgain(final double Latitude,final double Longitude){
             sendRequest(Latitude, Longitude);
@@ -415,14 +482,83 @@ public class Analyze extends AppCompatActivity {
         startActivity(intent);  //return to the activity MainActivity
     }
 
+    public boolean checkEphemeris(String Ephemeris){
+        int numOfEph = 0;
+        for(int i = 0; i < Ephemeris.length(); i++){
+
+            /*Check the eccentricity of the satellite's orbit, this control should be useless if the device is connected to the internet*/
+            if(Ephemeris.charAt(i) == 'e' && Ephemeris.charAt(i+1) == ':' && Ephemeris.charAt(i-1) != 'd' && Ephemeris.charAt(i-1) != 'o')
+                if(Float.parseFloat(Ephemeris.substring(i + 3, i + 8)) > 0.03)
+                    return false;
+
+            if(Ephemeris.charAt(i) == 'c' && Ephemeris.charAt(i-1) == 'd'){
+                i = i+3;
+                int temp = i;
+                while(Ephemeris.charAt(i) >= '0' && Ephemeris.charAt(i) <= '9')
+                    i++;
+                ephParam [numOfEph] [1] = Integer.parseInt(Ephemeris.substring(temp, i));
+
+            }
+
+            if(Ephemeris.charAt(i) == 'e' && Ephemeris.charAt(i-1) == 'd' && Ephemeris.charAt(i-2) == 'o' && Ephemeris.charAt(i-3) == 'i'){
+                i = i+3;
+                int temp = i;
+                while(Ephemeris.charAt(i) >= '0' && Ephemeris.charAt(i) <= '9')
+                    i++;
+                ephParam [numOfEph] [2] = Integer.parseInt(Ephemeris.substring(temp, i));
+            }
+
+            if(Ephemeris.charAt(i) == 'c' && Ephemeris.charAt(i-1) == 'o' && Ephemeris.charAt(i-2) == 't') {
+                int temp = i +3;
+                while (Ephemeris.charAt(i) != '.')
+                    i++;
+                if(Integer.parseInt(Ephemeris.substring(temp, i)) > 604500)
+                    return false;
+                ephParam [numOfEph] [3] = Integer.parseInt(Ephemeris.substring(temp, i));
+            }
+
+            if(Ephemeris.charAt(i) == 'e' && Ephemeris.charAt(i-1) == 'o' && Ephemeris.charAt(i-2) == 't'){
+                int temp = i +3;
+                while (Ephemeris.charAt(i) != '.')
+                    i++;
+                if(Integer.parseInt(Ephemeris.substring(temp, i)) > 604784)
+                    return false;
+                ephParam [numOfEph] [4] = Integer.parseInt(Ephemeris.substring(temp, i));
+            }
+
+            if(Ephemeris.charAt(i) == 'k'){
+                i = i + 3;
+                int temp = i;
+                while(Ephemeris.charAt(i) >= '0' && Ephemeris.charAt(i) <= '9')
+                    i++;
+                ephParam [numOfEph] [0] = Integer.parseInt(Ephemeris.substring(temp, i));
+                numOfEph++;
+            }
+        }
+
+        for(int i = 0; i < numOfEph; i++) {
+            if (ephParam[0][0] != ephParam[i][0]) //Week must be the same for each satellite
+                return false;
+            if (ephParam[i][1] != ephParam [i] [2] || ephParam [i] [1] < 0 || ephParam [i] [1] > 1023) //Iodc must be the same as Iode and between 0 and 1023
+                return false;
+            if(ephParam [i] [3] !=ephParam [i] [4]) //toc and toe should normally be equal
+                return false;
+            for(int k = i; k < numOfEph; k++)
+                if(ephParam [i] [3] < ephParam [k] [3] - 3600 || ephParam [i] [3] > ephParam [k] [3] +3600) //no acquisitions longer than one hour must be made
+                    return false;
+        }
+        return true;
+    }
+
     public void openActivity2(){
         Intent intent2 = new Intent(this, ViewNavMess.class);
 
-        intent2.putExtra(EXTRA_NUMBER_9, listOfNavMessSat);
-        intent2.putExtra(EXTRA_NUMBER_10, numOfNavMessSat);
-        intent2.putExtra(EXTRA_NUMBER_11, Ephemerids);
-        intent2.putExtra(EXTRA_NUMBER_12, rawData);
-        intent2.putExtra(EXTRA_NUMBER_13, Location);
+        intent2.putExtra(EXTRA_NUMBER_10, listOfNavMessSat);
+        intent2.putExtra(EXTRA_NUMBER_11, numOfNavMessSat);
+        intent2.putExtra(EXTRA_NUMBER_12, Ephemeris);
+        intent2.putExtra(EXTRA_NUMBER_13, rawData);
+        intent2.putExtra(EXTRA_NUMBER_14, Location);
+        intent2.putExtra(EXTRA_NUMBER_15, currentTime);
 
         startActivity(intent2);  //start the activity ViewNavMess
     }
