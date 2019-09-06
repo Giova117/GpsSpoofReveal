@@ -9,6 +9,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -29,6 +30,7 @@ public class ViewNavMess extends AppCompatActivity {
 
 
     private String Ephemerids;
+    private String Ionosphere;
     private int numOfNavMessSat;
     private int [] [] listOfNavMessSat;
     private String [] [] rawData;
@@ -56,12 +58,13 @@ public class ViewNavMess extends AppCompatActivity {
         //reads the parameters passed from the "Analyze" activity
         Intent intent = getIntent();
 
-        listOfNavMessSat = (int[][]) intent.getSerializableExtra(Analyze.EXTRA_NUMBER_10);
-        numOfNavMessSat = intent.getIntExtra(Analyze.EXTRA_NUMBER_11, 0);
-        Ephemerids = intent.getStringExtra(Analyze.EXTRA_NUMBER_12);
-        rawData = (String[][]) intent.getSerializableExtra(Analyze.EXTRA_NUMBER_13);
-        Location = intent.getStringExtra(Analyze.EXTRA_NUMBER_14);
-        currentTime = intent.getStringExtra(Analyze.EXTRA_NUMBER_15);
+        listOfNavMessSat = (int[][]) intent.getSerializableExtra(Analyze.EXTRA_NUMBER_11);
+        numOfNavMessSat = intent.getIntExtra(Analyze.EXTRA_NUMBER_12, 0);
+        Ephemerids = intent.getStringExtra(Analyze.EXTRA_NUMBER_13);
+        rawData = (String[][]) intent.getSerializableExtra(Analyze.EXTRA_NUMBER_14);
+        Location = intent.getStringExtra(Analyze.EXTRA_NUMBER_15);
+        currentTime = intent.getStringExtra(Analyze.EXTRA_NUMBER_16);
+        Ionosphere = intent.getStringExtra(Analyze.EXTRA_NUMBER_17);
 
         //check permissions to access the device memory
         if(!(checkPermission())) {
@@ -69,6 +72,9 @@ public class ViewNavMess extends AppCompatActivity {
 
         //current date, first line of the result
         tvNavMessText = "" + currentTime + "\n" + Location + "\n";
+        Log.d("giovanni", Ionosphere);
+        if(!(Ionosphere.equals("null")))
+            tvNavMessText = tvNavMessText + "\n" + "Ionosphere data:\n" + Ionosphere + "\n";
 
         parseResult();
 

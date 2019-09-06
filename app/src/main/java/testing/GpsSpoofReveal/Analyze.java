@@ -61,16 +61,17 @@ public class Analyze extends AppCompatActivity {
 
     private int pointerListOfSuppVisibleSat, dimensionListOfVisibleSat, pointerListOfVisibleSat, iterator = 0, numOfNavMessSat;
     private boolean b = false, z = true, Nav = true, checkEph = true;
-    private String Ephemeris, Location;
+    private String Ephemeris, Location, Ionosphere;
     private String currentTime;
 
     //these variables are used to pass parameters to the activity ViewNavMess
-    public static final String EXTRA_NUMBER_10 = "testing.GpsSpoofReveal.EXTRA_NUMBER_10";
     public static final String EXTRA_NUMBER_11 = "testing.GpsSpoofReveal.EXTRA_NUMBER_11";
     public static final String EXTRA_NUMBER_12 = "testing.GpsSpoofReveal.EXTRA_NUMBER_12";
     public static final String EXTRA_NUMBER_13 = "testing.GpsSpoofReveal.EXTRA_NUMBER_13";
     public static final String EXTRA_NUMBER_14 = "testing.GpsSpoofReveal.EXTRA_NUMBER_14";
     public static final String EXTRA_NUMBER_15 = "testing.GpsSpoofReveal.EXTRA_NUMBER_15";
+    public static final String EXTRA_NUMBER_16 = "testing.GpsSpoofReveal.EXTRA_NUMBER_16";
+    public static final String EXTRA_NUMBER_17 = "testing.GpsSpoofReveal.EXTRA_NUMBER_17";
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -113,6 +114,7 @@ public class Analyze extends AppCompatActivity {
         Ephemeris = intent.getStringExtra(MainActivity.EXTRA_NUMBER_7);
         rawData = (String [] []) intent.getSerializableExtra(MainActivity.EXTRA_NUMBER_8);
         currentTime = intent.getStringExtra(MainActivity.EXTRA_NUMBER_9);
+        Ionosphere = intent.getStringExtra(MainActivity.EXTRA_NUMBER_10);
 
         //show longitude and latitude
         Location = "Longitude: " + Longitude + "\n" + "Latitude: " + Latitude;
@@ -173,9 +175,9 @@ public class Analyze extends AppCompatActivity {
                         //if there is no internet connection
                         else{
                             if(checkEph)
-                                tvAnswerText = "Device is not connected to the internet! Activate a valid connection and press Try Again!";
+                                tvAnswerText = "Device is not connected to Internet! Activate a valid connection and press Try Again!";
                             else
-                                tvAnswerText = "Ephemeris are not correct, use an internet network for greater accuracy!";
+                                tvAnswerText = "Ephemeris are not correct, use an Internet connection for better accuracy!";
                             tvAnswer.setTextSize(14);
                             tvAnswer.setText(tvAnswerText);
                             tvAnswer.setTextColor(Color.parseColor("#d60000")); //red colour
@@ -553,12 +555,13 @@ public class Analyze extends AppCompatActivity {
     public void openActivity2(){
         Intent intent2 = new Intent(this, ViewNavMess.class);
 
-        intent2.putExtra(EXTRA_NUMBER_10, listOfNavMessSat);
-        intent2.putExtra(EXTRA_NUMBER_11, numOfNavMessSat);
-        intent2.putExtra(EXTRA_NUMBER_12, Ephemeris);
-        intent2.putExtra(EXTRA_NUMBER_13, rawData);
-        intent2.putExtra(EXTRA_NUMBER_14, Location);
-        intent2.putExtra(EXTRA_NUMBER_15, currentTime);
+        intent2.putExtra(EXTRA_NUMBER_11, listOfNavMessSat);
+        intent2.putExtra(EXTRA_NUMBER_12, numOfNavMessSat);
+        intent2.putExtra(EXTRA_NUMBER_13, Ephemeris);
+        intent2.putExtra(EXTRA_NUMBER_14, rawData);
+        intent2.putExtra(EXTRA_NUMBER_15, Location);
+        intent2.putExtra(EXTRA_NUMBER_16, currentTime);
+        intent2.putExtra(EXTRA_NUMBER_17, Ionosphere);
 
         startActivity(intent2);  //start the activity ViewNavMess
     }

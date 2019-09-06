@@ -72,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_NUMBER_7 = "testing.GpsSpoofReveal.EXTRA_NUMBER_7";
     public static final String EXTRA_NUMBER_8 = "testing.GpsSpoofReveal.EXTRA_NUMBER_8";
     public static final String EXTRA_NUMBER_9 = "testing.GpsSpoofReveal.EXTRA_NUMBER_9";
+    public static final String EXTRA_NUMBER_10 = "testing.GpsSpoofReveal.EXTRA_NUMBER_10";
 
     private Integer satelliteCount, sat_id, constellationType, azimuthDegrees, elevationDegrees, cn0DbHz, pointer = 0, numOfNavMessSat = 0;
     private boolean hasAlmanac, hasEphemeris;
@@ -116,7 +117,8 @@ public class MainActivity extends AppCompatActivity {
      * */
     private boolean startStop = false, infoReset = false, findPosition = false;
     private final int MY_PERMISSIONS_REQUEST_POSITION = 10;
-    private String Ephemerids;
+    private String Ephemeris;
+    private String Ionosphere;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -226,10 +228,12 @@ public class MainActivity extends AppCompatActivity {
                         NavigationMessages = new  Ephemeris.GpsNavMessageProto ();
                         NavigationMessages = objNavMess.createDecodedNavMessage();
                         try {
-                            Ephemerids = Arrays.toString(NavigationMessages.ephemerids);
-                            /*contains information about the ionosphere, in this application they are not used.
-                             *It takes about 12.5 minutes to download them.
-                             *Log.d("giovanni", "" + NavigationMessages.iono);*/
+                            Ephemeris = Arrays.toString(NavigationMessages.ephemerids);
+
+                            /*contains information about the ionosphere.
+                             *It takes about 12.5 minutes to download them. */
+                            Ionosphere = String.valueOf(NavigationMessages.iono);
+
                         }catch (Exception e){
                             e.printStackTrace();
                         }
@@ -471,9 +475,10 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(EXTRA_NUMBER_4, Latitude);
         intent.putExtra(EXTRA_NUMBER_5, listOfNavMessSat);
         intent.putExtra(EXTRA_NUMBER_6, numOfNavMessSat);
-        intent.putExtra(EXTRA_NUMBER_7, Ephemerids);
+        intent.putExtra(EXTRA_NUMBER_7, Ephemeris);
         intent.putExtra(EXTRA_NUMBER_8, rawData);
         intent.putExtra(EXTRA_NUMBER_9, currentTime);
+        intent.putExtra(EXTRA_NUMBER_10, Ionosphere);
 
         startActivity(intent);  //start the activity Analyze
     }
@@ -502,7 +507,7 @@ public class MainActivity extends AppCompatActivity {
             tvGpsInfo.setText(v);
         }
         else{
-            v = "---INFO---\n\n Version: 1.2\n Made by: Giovanni Carollo\nContacts: " +
+            v = "---INFO---\n\n Version: 1.3\n Made by: Giovanni Carollo\nContacts: " +
                     "giovanni.carollo.3@studenti.unipd.it\nThis application is a part of the GpsSpoofReveal project. " +
                     "GpsSpoofReveal was created as a thesis project for a three-year degree in computer engineering for the University of Padua. " +
                     "Right now GpsSpoofReveal is still in a beta phase. The layout may not be displayed correctly on some devices.\n\n---INFO---\n";
