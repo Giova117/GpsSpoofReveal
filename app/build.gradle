@@ -11,7 +11,7 @@ android {
         targetSdkVersion 27
         //at the creation date of this application (June 2019) the http communication will not work if targetSdkVersion is higher than 27
         versionCode 1
-        versionName "1.0"
+        versionName "1.3.3"
     }
     buildTypes {
         release {

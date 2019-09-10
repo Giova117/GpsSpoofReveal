@@ -8,12 +8,16 @@ import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 //these libraries are used to make the http communication
 import okhttp3.Call;
@@ -25,6 +29,7 @@ import okhttp3.Response;
 public class Analyze extends AppCompatActivity {
 
     private Button bTryAgain;
+    private Button bIP;
 
     private TextView tvCN;
     private TextView tvSat;
@@ -64,6 +69,12 @@ public class Analyze extends AppCompatActivity {
     private String Ephemeris, Location, Ionosphere;
     private String currentTime;
 
+    //Set of IP present at the time of installation
+    private String [] IP = new String[] {"62.211.50.101", "230.209.206.81", "10.204.225.121", "142.167.151.88", "229.234.83.159",
+            "233.36.109.116", "159.14.82.41", "131.2.247.254", "101.80.75.8", "88.11.113.241"};
+    private String insert = "";
+    private int maxNum = 0;
+
     //these variables are used to pass parameters to the activity ViewNavMess
     public static final String EXTRA_NUMBER_11 = "testing.GpsSpoofReveal.EXTRA_NUMBER_11";
     public static final String EXTRA_NUMBER_12 = "testing.GpsSpoofReveal.EXTRA_NUMBER_12";
@@ -79,6 +90,7 @@ public class Analyze extends AppCompatActivity {
         setContentView(R.layout.activity_analize);
 
         bTryAgain = findViewById(R.id.bTryAgain);
+        bIP = findViewById(R.id.bIP);
         Button bReturn = findViewById(R.id.bReturn);
         Button bViewNavMessData = findViewById(R.id.bViewNavMessData);
 
@@ -88,6 +100,13 @@ public class Analyze extends AppCompatActivity {
             public void onClick(View view) {
                 openActivity1();
             }});
+
+        bIP.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                openActivity3();
+            }
+        });
 
         TextView tvVariable;
         String tvVariableText;
@@ -121,6 +140,8 @@ public class Analyze extends AppCompatActivity {
         tvVariableText = tvVariable.getText() +  "Longitude: " + Longitude + "\n" + "Latitude: " + Latitude;
         tvVariable.setText(tvVariableText);
 
+        readFile();
+
         //view navigation message button, go to activity ViewNavMess
         bViewNavMessData.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -142,7 +163,8 @@ public class Analyze extends AppCompatActivity {
 
         //--------------------------------!!!----------------------------
         //the content of this string depends on how the own web server is set
-        String url = "http://62.211.50.101/node_modules/satellites-above/call.php?argument1=" + Latitude + "&argument2=" + Longitude;
+        //the server IP is always the one of the first line of the IP file
+        String url = "http://" + IP [0] + "/node_modules/satellites-above/call.php?argument1=" + Latitude + "&argument2=" + Longitude;
         //--------------------------------!!!----------------------------
 
         final OkHttpClient client = new OkHttpClient();
@@ -187,6 +209,12 @@ public class Analyze extends AppCompatActivity {
                         bTryAgain.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        readFile();
+                                    }
+                                });
                                 tryAgain(Latitude, Longitude);
                                 tvAnswerText = "";
                                 tvAnswer.setTextSize(21);
@@ -566,7 +594,65 @@ public class Analyze extends AppCompatActivity {
         startActivity(intent2);  //start the activity ViewNavMess
     }
 
-    //Check if the device is connected to internet
+    //At the first start it generates the IP file. In subsequent starts he only reads it
+    public void readFile(){
+        FileOutputStream fos = null;
+        FileInputStream fis = null;
+
+        try{
+            fis = openFileInput("ListIP");
+            InputStreamReader isr = new InputStreamReader(fis);
+            BufferedReader br = new BufferedReader(isr);
+            StringBuilder sb = new StringBuilder();
+            String temp = "";
+            if((temp = br.readLine()) != null){
+                sb.append(temp).append("\n");
+                IP [0] = temp;
+            }
+
+        }catch (FileNotFoundException e){
+            try{
+                fos = openFileOutput("ListIP", MODE_PRIVATE);
+                while(maxNum < 10){
+                    insert = insert + IP[maxNum] + "\n";
+                    maxNum++;
+                }
+                fos.write(insert.getBytes());
+
+
+            }catch (FileNotFoundException c){
+                c.printStackTrace();
+            }catch (IOException c){
+                c.printStackTrace();
+            }finally {
+                if(fos != null){
+                    try{
+                        fos.close();
+                    } catch (IOException c){
+                        c.printStackTrace();
+                    }
+                }
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }finally{
+            if(fis !=null){
+                try{
+                    fis.close();
+                } catch (IOException e){
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    //allows you to change the target IP
+    public void openActivity3(){
+        Intent intent3 = new Intent(this, ChangeIP.class);
+        startActivity(intent3);
+    }
+
+    //check if the device is connected to internet
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         assert connectivityManager != null;
